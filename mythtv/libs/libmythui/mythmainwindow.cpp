@@ -1391,7 +1391,7 @@ void MythMainWindow::attach(QWidget *child)
             .arg(::GetCurrentThreadId()));
 #endif
     if (currentWidget())
-    {
+#ifdef Q_OS_MAC
         // don't disable the current widget, instead we disable all its children
         // on mac, disabling the current active widget entirely prevent keyboard to
         // work on the newly opened widget.
@@ -1406,8 +1406,9 @@ void MythMainWindow::attach(QWidget *child)
                 d->enabledWidgets[w] = true;
             }
         }
-    }
-
+#else
+        currentWidget()->setEnabled(false);
+#endif
     d->widgetList.push_back(child);
     child->winId();
     child->raise();
@@ -1430,11 +1431,8 @@ void MythMainWindow::detach(QWidget *child)
     d->widgetList.erase(it);
     QWidget *current = currentWidget();
     if (!current)
-    {
         current = this;
-        // We're be to the main window, enable it just in case
-        setEnabled(true);
-    }
+#ifdef Q_OS_MAC
     else
     {
         QList<QWidget*> list = current->findChildren<QWidget *>();
@@ -1449,6 +1447,8 @@ void MythMainWindow::detach(QWidget *child)
         }
     }
     current->raise();
+#endif
+    current->setEnabled(true);
     current->setFocus();
     current->setMouseTracking(true);
 
